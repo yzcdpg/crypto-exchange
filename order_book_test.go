@@ -20,5 +20,11 @@ func TestLimit(t *testing.T) {
 
 func TestNewOrderBook(t *testing.T) {
 	ob := NewOrderBook()
-
+	buyOrderA := NewOrder(true, 10)
+	buyOrderB := NewOrder(true, 2000)
+	buyOrderC := NewOrder(true, 5)
+	ob.PlaceOrder(18_000, buyOrderA)
+	ob.PlaceOrder(19_000, buyOrderB)
+	ob.PlaceOrder(18_000, buyOrderC)
+	fmt.Println(ob.Bids)
 }
