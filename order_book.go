@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -19,6 +20,12 @@ type Order struct {
 	Timestamp int64
 }
 
+type Orders []*Order
+
+func (o Orders) Len() int           { return len(o) }
+func (o Orders) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
+func (o Orders) Less(i, j int) bool { return o[i].Timestamp < o[j].Timestamp }
+
 func (o *Order) String() string {
 	return fmt.Sprintf("[size:%.2f]", o.Size)
 }
@@ -34,9 +41,22 @@ func NewOrder(bid bool, size float64) *Order {
 // Limit 限价单
 type Limit struct {
 	Price       float64
-	Orders      []*Order
+	Orders      Orders
 	TotalVolume float64
 }
+
+type Limits []*Limit
+type ByBestAsk struct{ Limits }
+
+func (b ByBestAsk) Len() int           { return len(b.Limits) }
+func (b ByBestAsk) Swap(i, j int)      { b.Limits[i], b.Limits[i] = b.Limits[j], b.Limits[i] }
+func (b ByBestAsk) Less(i, j int) bool { return b.Limits[i].Price < b.Limits[j].Price }
+
+type ByBestBid struct{ Limits }
+
+func (b ByBestBid) Len() int           { return len(b.Limits) }
+func (b ByBestBid) Swap(i, j int)      { b.Limits[i], b.Limits[i] = b.Limits[j], b.Limits[i] }
+func (b ByBestBid) Less(i, j int) bool { return b.Limits[i].Price > b.Limits[j].Price }
 
 func NewLimit(price float64) *Limit {
 	return &Limit{
@@ -68,7 +88,7 @@ func (l *Limit) DeleteOrder(order *Order) {
 	order.Limit = nil
 	l.TotalVolume -= order.Size
 
-	// TODO: resort the whole resting orders
+	sort.Sort(l.Orders)
 }
 
 // OrderBook 订单簿
